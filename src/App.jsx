@@ -1,4 +1,26 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
+
+// Place this at the very top of your file, outside the App function
+const calculateWinner = (squares) => {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ]
+
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i]
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a]
+    }
+  }
+  return null
+}
 
 function App() {
   const [player, setPlayer] = useState('X')
@@ -8,44 +30,21 @@ function App() {
     ['', '', ''],
   ])
 
-  const CalculateWinner = (squares) => {
-    const lines = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ]
+  // This is fast enough that useMemo isn't necessary for a 3x3 board
+  const winner = calculateWinner(board.flat())
 
-    for (let i = 0; i < lines.length; i++) {
-      const [a, b, c] = lines[i]
-      if (
-        squares[a] &&
-        squares[a] === squares[b] &&
-        squares[a] === squares[c]
-      ) {
-        return squares[a]
-      }
-    }
-    return null
-  }
-
-  const winner = useMemo(() => CalculateWinner(board.flat()), [board])
-
-  const MakeMove = (x, y) => {
+  const makeMove = (x, y) => {
     if (winner) return
     if (board[x][y] !== '') return
 
-    const newBoard = [...board]
-    newBoard[x][y] = player || 'X'
+    // Correctly maps out deep copies of the nested arrays
+    const newBoard = board.map((row) => [...row])
+    newBoard[x][y] = player
     setBoard(newBoard)
     setPlayer(player === 'X' ? 'O' : 'X')
   }
 
-  const ResetGame = () => {
+  const resetGame = () => {
     setBoard([
       ['', '', ''],
       ['', '', ''],
@@ -65,7 +64,7 @@ function App() {
               {row.map((cell, y) => (
                 <div
                   key={y}
-                  onClick={() => MakeMove(x, y)}
+                  onClick={() => makeMove(x, y)}
                   className='border border-white w-20 h-20 hover:bg-gray-700 flex items-center justify-center cursor-pointer'
                 >
                   <span className='material-icons-outlined text-4xl'>
@@ -82,7 +81,7 @@ function App() {
         )}
 
         <button
-          onClick={ResetGame}
+          onClick={resetGame}
           className='px-4 py-2 bg-pink-500 rounded uppercase font-bold hover:bg-pink-600 duration-300 cursor-pointer'
         >
           Reset Game
